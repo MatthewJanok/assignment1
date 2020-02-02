@@ -9,17 +9,15 @@ Pscat = 1-exp(-1e-14/0.2e-12);
 tauMN = 0;
 
 %Initialize Bottleneck
-% BLX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
-% BLY = [0 0.4e-7; 0.4e-7 0.4e-7; 0.4e-7 0];
-% BHX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
-% BHY = [1e-7 0.6e-7; 0.6e-7 0.6e-7; 0.6e-7 1e-7];
-% figure(3)
-% plot(BLX,BLY,'k',BHX,BHY,'k')
-% hold on
+BLX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
+BLY = [0 0.4e-7; 0.4e-7 0.4e-7; 0.4e-7 0];
+BHX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
+BHY = [1e-7 0.6e-7; 0.6e-7 0.6e-7; 0.6e-7 1e-7];
+
 
 %Initialise the particles
 initialX = 200e-9*rand(100,1);
-initialY = 100e-9*rand(100,1);
+initialY = 0.2e-7.*rand(100,1) + 0.4e-7;
 axis ([0 200e-9 0 100e-9])
 
 %Initialise angles
@@ -125,7 +123,85 @@ for time = 0:1e-14:0.01
     velocityY(lowY) = -velocityY(lowY);
     
     
+    
+    %Check Upper Box Conditions
+    %Left Condition
+    UpperBoxLeftX0 = initialX < 0.8e-7;
+    UpperBoxLeftX1 = newX > 0.8e-7; 
+    UpperBoxLeftX = UpperBoxLeftX0>0 & UpperBoxLeftX1>0;
+    
+    UpperBoxLeftY = newY > 0.6e-7;
+    
+    bouncebackL = UpperBoxLeftX>0 & UpperBoxLeftY>0;
+    velocityX(bouncebackL) = -velocityX(bouncebackL);
    
+    
+    %Center Condition
+    UpperBoxCenterX1 = newX > 0.8e-7 ;
+    UpperBoxCenterX2 = newX < 1.2e-7;
+    UpperBoxCenterX = UpperBoxCenterX1>0 & UpperBoxCenterX2>0;
+    
+    UpperBoxCenterY0 = initialY < 0.6e-7;
+    UpperBoxCenterY1 = newY > 0.6e-7;
+    UpperBoxCenterY = UpperBoxCenterY0>0 & UpperBoxCenterY1>0;
+    
+    
+    bouncebackC = UpperBoxCenterX>0 & UpperBoxCenterY>0;
+    velocityY(bouncebackC) = -velocityY(bouncebackC);
+    
+    %Right Condition
+    UpperBoxRightX0 = initialX > 1.2e-7;
+    UpperBoxRightX1 = newX < 1.2e-7; 
+    UpperBoxRightX = UpperBoxRightX0>0 & UpperBoxRightX1>0;
+    
+    UpperBoxRightY = newY > 0.6e-7;
+    
+    bouncebackR = UpperBoxRightX>0 & UpperBoxRightY>0;
+    velocityX(bouncebackR) = -velocityX(bouncebackR);
+      
+    
+    
+    
+    
+    
+    %Check Lower Box Conditions
+    %Left Condition
+    LowerBoxLeftX0 = initialX < 0.8e-7;
+    LowerBoxLeftX1 = newX > 0.8e-7; 
+
+    LowerBoxLeftX = LowerBoxLeftX0>0 & LowerBoxLeftX1>0;
+    LowerBoxLeftY = newY < 0.4e-7;
+    
+    bouncebackL = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+    velocityX(bouncebackL) = -velocityX(bouncebackL);
+   
+    
+    %Center Condition
+    LowerBoxCenterX1 = newX > 0.8e-7 ;
+    LowerBoxCenterX2 = newX < 1.2e-7;
+    LowerBoxCenterX = LowerBoxCenterX1>0 & LowerBoxCenterX2>0;
+    
+    LowerBoxCenterY0 = initialY > 0.4e-7;
+    LowerBoxCenterY1 = newY < 0.4e-7;
+    LowerBoxCenterY = LowerBoxCenterY0>0 & LowerBoxCenterY1>0;
+    
+    
+    bouncebackC = LowerBoxCenterX>0 & LowerBoxCenterY>0;
+    velocityY(bouncebackC) = -velocityY(bouncebackC);
+    
+    %Right Condition
+    LowerBoxRightX0 = initialX > 1.2e-7;
+    LowerBoxRightX1 = newX < 1.2e-7; 
+
+    LowerBoxRightX = LowerBoxRightX0>0 & LowerBoxRightX1>0;
+    LowerBoxRightY = newY < 0.4e-7;
+    
+    bouncebackR = LowerBoxRightX>0 & LowerBoxRightY>0;
+    velocityX(bouncebackR) = -velocityX(bouncebackR);
+    
+ 
+    
+    
     
     xv = [initialX newX];
     yv = [initialY newY];
@@ -136,8 +212,7 @@ for time = 0:1e-14:0.01
 
     figure(3)
     title('Confined Atoms');
-    plot(xv.', yv.');
-%     , BLX,BLY,'k',BHX,BHY,'k');
+    plot(xv.', yv.','.', BLX,BLY,'k',BHX,BHY,'k');  
     hold on
 
     axis ([0 200e-9 0 100e-9])
