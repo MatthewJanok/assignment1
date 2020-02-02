@@ -42,7 +42,7 @@ velocityX = initialRV.*cos(angleRad);
 velocityY = initialRV.*sin(angleRad);
 
 
-for time = 0:1e-14:0.01
+for time = 0:1e-14: 1e-12
     
 
     %Find new positions
@@ -104,8 +104,8 @@ for time = 0:1e-14:0.01
     [NH,IH] = max(newX);
     [NL,IL] = min(newX);
     
-    upperX = newX > 200e-9;
-    newX(upperX)= newX(upperX)-200e-9;
+    upperX = newX > 2e-7;
+    newX(upperX)= newX(upperX)-2e-7;
     
     lowX = newX < 0;
     newX(lowX) = newX(lowX)+200e-9;
@@ -236,7 +236,58 @@ end
 hold off
 
 
+%Electron Density at final positions
+del = 0.05e-7;
+nx = 40;
+ny = 20;
+ED = zeros(ny,nx);
+Temp = zeros(ny,nx);
 
+for i = 1:nx
+    for j = 1:ny
+        LowerBoxLeftX1 = newX < (i*del);
+        LowerBoxLeftX2 = newX > (i*del - del); 
+        LowerBoxLeftX = LowerBoxLeftX1>0 & LowerBoxLeftX2>0;      
+        
+        
+        LowerBoxLeftY1 = newY < (j*del);
+        LowerBoxLeftY2 = newY > (j*del - del);
+        LowerBoxLeftY = LowerBoxLeftY1>0 & LowerBoxLeftY2>0;
+        
+        particles = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+        
+        Xvelocity = velocityX(particles);
+        Yvelocity = velocityY(particles);
+
+        
+        TotalElectrons = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+        Vavg = mean((Xvelocity.^2) + (Yvelocity.^2));
+        
+        
+        Temp(j,i) = (mn*Vavg)/(kb);
+        ED(j,i) = sum(TotalElectrons);
+       
+    end
+end
+
+figure(5)
+title('Electron Density')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+pcolor(ED)
+
+
+
+figure(6)
+title('Temperature Map')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+pcolor(Temp)
+
+
+
+
+done = string("DONE")
 
 
 

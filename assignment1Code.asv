@@ -16,19 +16,19 @@ BHY = [1e-7 0.6e-7; 0.6e-7 0.6e-7; 0.6e-7 1e-7];
 
 
 %Initialise the particles
-initialX = 200e-9*rand(10,1);
-initialY = 0.2e-7.*rand(10,1) + 0.4e-7;
+initialX = 200e-9*rand(100,1);
+initialY = 0.2e-7.*rand(100,1) + 0.4e-7;
 axis ([0 200e-9 0 100e-9])
 
 %Initialise angles
-angleRad = 2*pi*rand(10,1);
+angleRad = 2*pi*rand(100,1);
 
 %Set velocity
 vth = sqrt((kb*T)/mn);
 
 %Maxwell Boltzman Inital Velocity
-MD1 = randn(10,1).*(vth/sqrt(2));
-MD2 = randn(10,1).*(vth/sqrt(2));
+MD1 = randn(100,1).*(vth/sqrt(2));
+MD2 = randn(100,1).*(vth/sqrt(2));
 MaxwellBoltzman = sqrt((MD1).^2+(MD2).^2);
 initialRV = MaxwellBoltzman;
 
@@ -42,7 +42,7 @@ velocityX = initialRV.*cos(angleRad);
 velocityY = initialRV.*sin(angleRad);
 
 
-for time = 0:1e-14:0.01
+for time = 0:1e-14: 1e-12
     
 
     %Find new positions
@@ -50,16 +50,16 @@ for time = 0:1e-14:0.01
     newY = initialY + velocityY*1e-14;
     
     %Check for Scatter
-    Escat = rand(10,1) < Pscat;
+    Escat = rand(100,1) < Pscat;
      if newX(Escat) > 0
         %Rethermalize
-        MD1 = randn(10,1).*(vth/sqrt(2));
-        MD2 = randn(10,1).*(vth/sqrt(2));
+        MD1 = randn(100,1).*(vth/sqrt(2));
+        MD2 = randn(100,1).*(vth/sqrt(2));
         MaxwellBoltzman = sqrt((MD1).^2+(MD2).^2);
         initialRV = MaxwellBoltzman;
 
         %Find New Velocities
-        angleRad = 2*pi*rand(10,1);
+        angleRad = 2*pi*rand(100,1);
         velocityX(Escat) = initialRV(Escat).*cos(angleRad(Escat));
         velocityY(Escat) = initialRV(Escat).*sin(angleRad(Escat));
         figure(1)
@@ -104,8 +104,8 @@ for time = 0:1e-14:0.01
     [NH,IH] = max(newX);
     [NL,IL] = min(newX);
     
-    upperX = newX > 200e-9;
-    newX(upperX)= newX(upperX)-200e-9;
+    upperX = newX > 2e-7;
+    newX(upperX)= newX(upperX)-2e-7;
     
     lowX = newX < 0;
     newX(lowX) = newX(lowX)+200e-9;
@@ -128,8 +128,8 @@ for time = 0:1e-14:0.01
     %Left Condition
     UpperBoxLeftX0 = initialX < 0.8e-7;
     UpperBoxLeftX1 = newX > 0.8e-7; 
-
     UpperBoxLeftX = UpperBoxLeftX0>0 & UpperBoxLeftX1>0;
+    
     UpperBoxLeftY = newY > 0.6e-7;
     
     bouncebackL = UpperBoxLeftX>0 & UpperBoxLeftY>0;
@@ -152,14 +152,19 @@ for time = 0:1e-14:0.01
     %Right Condition
     UpperBoxRightX0 = initialX > 1.2e-7;
     UpperBoxRightX1 = newX < 1.2e-7; 
-
     UpperBoxRightX = UpperBoxRightX0>0 & UpperBoxRightX1>0;
+    
     UpperBoxRightY = newY > 0.6e-7;
     
     bouncebackR = UpperBoxRightX>0 & UpperBoxRightY>0;
     velocityX(bouncebackR) = -velocityX(bouncebackR);
       
-    %Check Lowe Box Conditions
+    
+    
+    
+    
+    
+    %Check Lower Box Conditions
     %Left Condition
     LowerBoxLeftX0 = initialX < 0.8e-7;
     LowerBoxLeftX1 = newX > 0.8e-7; 
@@ -185,13 +190,13 @@ for time = 0:1e-14:0.01
     velocityY(bouncebackC) = -velocityY(bouncebackC);
     
     %Right Condition
-    UpperBoxRightX0 = initialX > 1.2e-7;
-    UpperBoxRightX1 = newX < 1.2e-7; 
+    LowerBoxRightX0 = initialX > 1.2e-7;
+    LowerBoxRightX1 = newX < 1.2e-7; 
 
-    UpperBoxRightX = UpperBoxRightX0>0 & UpperBoxRightX1>0;
-    UpperBoxRightY = newY > 0.6e-7;
+    LowerBoxRightX = LowerBoxRightX0>0 & LowerBoxRightX1>0;
+    LowerBoxRightY = newY < 0.4e-7;
     
-    bouncebackR = UpperBoxRightX>0 & UpperBoxRightY>0;
+    bouncebackR = LowerBoxRightX>0 & LowerBoxRightY>0;
     velocityX(bouncebackR) = -velocityX(bouncebackR);
     
  
@@ -231,7 +236,57 @@ end
 hold off
 
 
+%Electron Density at final positions
+del = 0.05e-7;
+nx = 40;
+ny = 20;
+ED = zeros(ny,nx);
+Temp = zeros(ny,nx);
 
+for i = 1:nx
+    for j = 1:ny
+        LowerBoxLeftX1 = newX < (i*del);
+        LowerBoxLeftX2 = newX > (i*del - del); 
+        LowerBoxLeftX = LowerBoxLeftX1>0 & LowerBoxLeftX2>0;
+        velocityX = velocityX(LowerBoxLeftX);
+       
+        
+        
+        LowerBoxLeftY1 = newY < (j*del);
+        LowerBoxLeftY2 = newY > (j*del - del);
+        LowerBoxLeftY = LowerBoxLeftY1>0 & LowerBoxLeftY2>0;
+        velocityY = velocityY(LowerBoxLeftY);
+
+        
+        
+        TotalElectrons = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+        Vavg = mean((velocityX.^2) + (velocityY.^2));
+        
+        
+        Temp(j,i) = (mn*Vavg)/(kb);
+        ED(j,i) = sum(TotalElectrons);
+       
+    end
+end
+
+figure(5)
+title('Electron Density')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+pcolor(ED)
+
+
+
+figure(6)
+title('Temperature Map')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+pcolor(Temp)
+
+
+
+
+done = string("DONE")
 
 
 
